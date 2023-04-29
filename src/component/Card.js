@@ -1,10 +1,17 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const Card = () => {
+const Card = ({ id, title }) => {
+  const navigate = useNavigate();
+  const intoDetail = () => {
+    navigate(`/board/${id}`);
+  };
   return (
-    <div style={{ border: '1px solid black', width: '200px', height: '120px' }}>
-      <p>Youtuber</p>
-      <p>편집자 구합니다</p>
+    <div
+      style={{ border: '1px solid black', width: '200px', height: '120px' }}
+      onClick={intoDetail}
+    >
+      <p>{title}</p>
     </div>
   );
 };

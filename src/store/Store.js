@@ -1,7 +1,6 @@
 import { createSlice, configureStore } from '@reduxjs/toolkit';
 
 const initialInputState = [];
-let id = 1;
 
 const BoardSlice = createSlice({
   name: 'board',
@@ -9,22 +8,27 @@ const BoardSlice = createSlice({
   reducers: {
     add: (state, action) => {
       state.push({
-        id: id++,
+        id: action.payload.id,
         title: action.payload.title,
         career: action.payload.career,
-        time: action.payload.time,
-        money: action.payload.pay,
-        workType: action.payload.worktype,
+        genre: action.payload.genre,
+        salary: action.payload.salary,
+        deadline: action.payload.deadline,
         content: action.payload.content,
       });
     },
     update: (state, action) => {
-      const { id, name, value } = action.payload;
-      const filterState = state
-        .find((input) => input.id === id)
-        .find((input) => input.name === name);
+      const { id, title, career, genre, salary, deadline, content } =
+        action.payload;
+      const filterState = state.find((input) => input.id === id);
+      console.log(title);
       if (filterState) {
-        filterState.value = value;
+        filterState.title = title;
+        filterState.career = career;
+        filterState.genre = genre;
+        filterState.salary = salary;
+        filterState.deadline = deadline;
+        filterState.content = content;
       }
     },
     delete: (state, action) => {
