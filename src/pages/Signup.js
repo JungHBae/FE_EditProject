@@ -1,11 +1,15 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Cookies from "js-cookie";
-import axios from "axios";
-import "./Signup.css";
+import axios from "../api/axios";
+import { TextField, Button, FormControl, InputLabel, Select, MenuItem, Box, Container, Typography } from "@mui/material";
+import { motion } from "framer-motion";
+
+const SIGNUP_URL = "/member/signup";
+const MotionContainer = motion(Container);
 
 export const Signup = () => {
-  const [user, setUser] = useState({ id: "", password: "", job: "", nickname: "" });
+  const [user, setUser] = useState({ userId: "", password: "", email: "", nickname: "", job: "editor" });
 
   // redirect if logged in
   const navigate = useNavigate();
@@ -19,11 +23,11 @@ export const Signup = () => {
   //POST request to signup user
   const signupUser = async (user) => {
     try {
-      await axios.post(`${process.env.REACT_APP_LOGIN_SERVER_URL}/register`, user);
-      alert("가입 성공!");
-      navigate("/login");
+      const response = await axios.post(SIGNUP_URL, user);
+      console.log(response.data);
+      // navigate("/login");
     } catch (error) {
-      alert(`401: ${error.response.data.message}`);
+      alert(`400:${error.response.data.message}`);
     }
   };
 
@@ -31,21 +35,13 @@ export const Signup = () => {
   const handleValueChange = (e) => {
     const changedValue = e.target.value;
     const targetInput = e.target.name;
-    switch (targetInput) {
-      case "id":
-        setUser({ ...user, id: changedValue });
-        break;
-      case "password":
-        setUser({ ...user, password: changedValue });
-        break;
-      default:
-        break;
-    }
+    setUser({ ...user, [targetInput]: changedValue });
   };
+
   const handleSignupSubmit = (e) => {
     e.preventDefault();
-    const { id, password } = user;
-    if (typeof id !== "string" || !id.trim()) {
+    const { userId, password } = user;
+    if (typeof userId !== "string" || !userId.trim()) {
       alert("Please enter a valid ID");
       return;
     }
@@ -55,34 +51,92 @@ export const Signup = () => {
     }
     signupUser(user);
   };
-
+  console.log(user);
   return (
-    <div className="signup">
-      <h3>Signup</h3>
+    <MotionContainer initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -50, opacity: 0 }} transition={{ duration: 0.2 }}>
+      <Box maxWidth="xs" sx={{ marginTop: "5rem", display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <Typography variant="h4">Signup</Typography>
+        <Box component="form" sx={{ mt: 3, width: "400px" }} onSubmit={handleSignupSubmit}>
+          <TextField
+            label="Username"
+            name="userId"
+            variant="outlined"
+            autoComplete="off"
+            onChange={handleValueChange}
+            value={user.userId}
+            fullWidth
+            margin="normal"
+            required
+            inputProps={{ maxLength: 30 }}
+            autoFocus
+          />
 
-      <div className="signup-field">
-        <form className="signup-form" onSubmit={handleSignupSubmit}>
-          <input type="text" name="id" placeholder="Username" autoComplete="off" onChange={handleValueChange} value={user.title} maxLength="30" />
-
-          <input
+          <TextField
+            label="Password"
             type="password"
             name="password"
-            placeholder="Password"
+            variant="outlined"
             autoComplete="off"
             onChange={handleValueChange}
             value={user.password}
-            maxLength="30"
+            fullWidth
+            margin="normal"
+            required
+            inputProps={{ maxLength: 30 }}
           />
-          <select name="id" value={user.title} onChange={handleValueChange}>
-            <option value="편집자">편집자</option>
-            <option value="유튜버">유튜버</option>
-          </select>
-          <input type="text" name="id" placeholder="Nickname" autoComplete="off" onChange={handleValueChange} value={user.title} maxLength="30" />
 
-          <button style={{ width: "75%", marginTop: "10px" }}>Signup</button>
-        </form>
-      </div>
-      <span>{/* <Link className="back-link" to="/">{`> 돌아가기! <`}</Link> */}</span>
-    </div>
+          <FormControl fullWidth variant="outlined" margin="normal" sx={{ mt: 2 }}>
+            <InputLabel shrink margin="dense" htmlFor="job-select" required>
+              Job
+            </InputLabel>
+            <Select
+              labelId="job-select-label"
+              id="job-select"
+              name="job"
+              value={user.job}
+              label="Job"
+              required
+              onChange={(e) => setUser({ ...user, job: e.target.value })}
+            >
+              <MenuItem value="editor">편집자</MenuItem>
+              <MenuItem value="youtuber">크리에이터</MenuItem>
+            </Select>
+          </FormControl>
+
+          <TextField
+            label="Nickname"
+            name="nickname"
+            variant="outlined"
+            autoComplete="off"
+            onChange={handleValueChange}
+            value={user.nickname}
+            fullWidth
+            margin="normal"
+            required
+            inputProps={{ maxLength: 30 }}
+          />
+
+          <TextField
+            label="Email"
+            name="email"
+            variant="outlined"
+            autoComplete="off"
+            onChange={handleValueChange}
+            value={user.email}
+            fullWidth
+            margin="normal"
+            required
+            inputProps={{ maxLength: 30 }}
+          />
+
+          <Button variant="contained" fullWidth sx={{ mt: "20px" }} type="submit">
+            Signup
+          </Button>
+        </Box>
+        <Typography variant="body1" sx={{ mt: 2 }}>
+          Already have an account? <Link to="/login">Login here</Link>
+        </Typography>
+      </Box>
+    </MotionContainer>
   );
 };

@@ -19,7 +19,7 @@ export const BoardPage = () => {
         <button onClick={WritePost}>게시글 작성</button>
       </div>
       <div style={{ display: 'flex' }}>
-        {boards.map((item) => (
+        {boards?.map((item) => (
           <Card key={item.id} id={item.id} title={item.title} />
         ))}
       </div>

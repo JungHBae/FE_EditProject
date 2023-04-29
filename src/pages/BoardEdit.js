@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import nextId from 'react-id-generator';
-import { boardActions } from '../store/Store';
+import { boardActions } from '../redux/modules/board';
 
 export const BoardEdit = () => {
   const navigate = useNavigate();

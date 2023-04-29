@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import { boardActions } from '../store/Store';
+import { boardActions } from '../redux/modules/board';
 import styles from './Board.module.css';
 
 export const Board = () => {
@@ -11,7 +11,6 @@ export const Board = () => {
   const board = useSelector((state) => state.board).find(
     (item) => item.id === Number(params.id)
   );
-  console.log(board);
 
   const [inputValue, setInputValue] = useState({
     ...board,

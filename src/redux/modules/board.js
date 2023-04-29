@@ -1,4 +1,4 @@
-import { createSlice, configureStore } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 
 const initialInputState = [];
 
@@ -37,11 +37,5 @@ const BoardSlice = createSlice({
   },
 });
 
-const board = configureStore({
-  reducer: {
-    board: BoardSlice.reducer,
-  },
-});
-
 export const boardActions = BoardSlice.actions;
-export default board;
+export default BoardSlice.reducer;
