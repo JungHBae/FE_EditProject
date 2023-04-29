@@ -9,19 +9,23 @@ import { Matching } from "../pages/Matching";
 import { BoardPage } from "../pages/BoardPage";
 import { Messages } from "../pages/Messages";
 import { Board } from "../component/Board";
+import { AnimatePresence } from "framer-motion";
+
 export const AnimatedRoutes = () => {
   const location = useLocation();
   return (
-    <Routes key={location.key} location={location}>
-      <Route path="/" element={<Home />} />
-      <Route path="signup" element={<Signup />} />
-      <Route path="login" element={<Login />} />
-      <Route path="profile/:id" element={<ProfilePage />} />
-      <Route path="myprofile" element={<MyProfile />} />
-      <Route path="matching" element={<Matching />} />
-      <Route path="board" element={<BoardPage />} />
-      <Route path="board/:id" element={<Board />} />
-      <Route path="chat" element={<Messages />} />
-    </Routes>
+    <AnimatePresence mode="wait">
+      <Routes key={location.key} location={location}>
+        <Route path="/" element={<Home />} />
+        <Route path="signup" element={<Signup />} />
+        <Route path="login" element={<Login />} />
+        <Route path="profile/:id" element={<ProfilePage />} />
+        <Route path="myprofile" element={<MyProfile />} />
+        <Route path="matching" element={<Matching />} />
+        <Route path="board" element={<BoardPage />} />
+        <Route path="board/:id" element={<Board />} />
+        <Route path="chat" element={<Messages />} />
+      </Routes>
+    </AnimatePresence>
   );
 };

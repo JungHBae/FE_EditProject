@@ -6,7 +6,7 @@ export const BoardPage = () => {
     <div className="body-container">
       <div className="container">
         <div>Board</div>
-        {/* <QuillEditor /> */}
+        <QuillEditor />
       </div>
       <div className="quill-container"></div>
     </div>

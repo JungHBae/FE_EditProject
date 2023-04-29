@@ -147,7 +147,7 @@ export const Messages = () => {
         </div>
       ) : (
         <div className="register">
-          <input id="user-name" placeholder="Enter your name" name="userName" value={userData.username} onChange={handleUsername} margin="normal" />
+          <input id="user-name" placeholder="Target User" name="userName" value={userData.username} onChange={handleUsername} margin="normal" />
           <button type="button" onClick={registerUser}>
             connect
           </button>
