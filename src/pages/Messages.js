@@ -7,13 +7,9 @@ export const Messages = () => {
   const [privateChats, setPrivateChats] = useState(new Map());
   const [publicChats, setPublicChats] = useState([]);
   const [tab, setTab] = useState("CHATROOM");
-  const [userData, setUserData] = useState({
-    username: "",
-    receivername: "",
-    connected: false,
-    message: "",
-  });
-  useEffect(() => {
+  const [userData, setUserData] = useState({ username: "", receivername: "", connected: false, message: "" });
+
+  const userName = useEffect(() => {
     console.log(userData);
   }, [userData]);
 
