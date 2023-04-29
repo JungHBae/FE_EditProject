@@ -1,11 +1,13 @@
-import { configureStore } from "@reduxjs/toolkit";
-import authReducer from "../modules/auth";
+import { configureStore } from '@reduxjs/toolkit';
+import authReducer from '../modules/auth';
+import boardReudcer from '../modules/board';
 
 const store = configureStore({
   reducer: {
-    authReducer,
+    auth: authReducer,
+    board: boardReudcer,
   },
-  devTools: process.env.NODE_ENV === "development",
+  devTools: process.env.NODE_ENV === 'development',
 });
 
 export default store;

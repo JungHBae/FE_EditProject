@@ -9,6 +9,7 @@ import { Matching } from "../pages/Matching";
 import { BoardPage } from "../pages/BoardPage";
 import { Messages } from "../pages/Messages";
 import { Board } from "../component/Board";
+import { BoardEdit } from "../pages/BoardEdit";
 import { AnimatePresence } from "framer-motion";
 import { authUser } from "../redux/modules/auth";
 import Cookies from "js-cookie";
@@ -42,6 +43,7 @@ export const AnimatedRoutes = () => {
         <Route path="myprofile" element={<MyProfile />} />
         <Route path="matching" element={<Matching />} />
         <Route path="board" element={<BoardPage />} />
+        <Route path="boardEdit" element={<BoardEdit />} />
         <Route path="board/:id" element={<Board />} />
         <Route path="chat" element={<Messages />} />
       </Routes>

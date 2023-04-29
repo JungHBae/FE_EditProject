@@ -1,0 +1,8 @@
+input:disabled {
+  color: black;
+  border: none;
+}
+select:disabled {
+  color: black;
+  border: none;
+}
