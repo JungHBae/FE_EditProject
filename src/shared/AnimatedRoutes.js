@@ -14,17 +14,18 @@ import { AnimatePresence } from "framer-motion";
 import { authUser } from "../redux/modules/auth";
 import Cookies from "js-cookie";
 import { useDispatch, useSelector } from "react-redux";
+import jwtDecode from "jwt-decode";
 
 export const AnimatedRoutes = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const isAuth = useSelector((state) => state.authReducer.authorizedUser);
+  const isAuth = useSelector((state) => state.auth.authorizedUser);
   const dispatch = useDispatch();
+
   // authenticate user on every route transition
   useEffect(() => {
     const token = Cookies.get("token");
-
     //check if cookie has expired. only alert if was logged in previously(redux state true -> false)
     if (isAuth && !token) {
       dispatch(authUser(["false", ""]));

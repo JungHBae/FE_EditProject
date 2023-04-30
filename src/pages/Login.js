@@ -30,14 +30,12 @@ export const Login = () => {
       const response = await axios.post(LOGIN_URL, user);
       const accessHeader = response.headers.get("access_header");
       const token = accessHeader.split(" ")[1];
-      console.log(token);
-
       const userToken = jwtDecode(token);
       const expirationTime = new Date(userToken.exp * 1000);
       // expirationTime.setTime(expirationTime.getTime() + 3 * 1000); // 10 minutes
       Cookies.set("token", token, { expires: expirationTime });
-      console.log(userToken);
-      dispatch(authUser(["true", userToken.id]));
+
+      dispatch(authUser(["true", userToken.sub]));
       navigate(-1);
     } catch (error) {
       alert(`400: ${error.response.data.message}`);

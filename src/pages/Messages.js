@@ -1,17 +1,26 @@
 import React, { useEffect, useState } from "react";
 import { over } from "stompjs";
 import SockJS from "sockjs-client";
+import { useSelector } from "react-redux";
+import { Box, ListItemAvatar, Container, Typography, List, ListItem, ListItemText, TextField, Button, Avatar } from "@mui/material";
 
 let stompClient = null;
 export const Messages = () => {
+  const authUserName = useSelector((state) => state.auth.userName);
   const [privateChats, setPrivateChats] = useState(new Map());
-  const [publicChats, setPublicChats] = useState([]);
   const [tab, setTab] = useState("CHATROOM");
   const [userData, setUserData] = useState({ username: "", receivername: "", connected: false, message: "" });
+  useEffect(() => {
+    setUserData((prevState) => ({ ...prevState, username: authUserName }));
+  }, [authUserName]);
 
-  const userName = useEffect(() => {
+  useEffect(() => {
     console.log(userData);
   }, [userData]);
+
+  useEffect(() => {
+    console.log("message");
+  }, [privateChats]);
 
   const connect = () => {
     let Sock = new SockJS("http://localhost:8080/ws");
@@ -21,7 +30,6 @@ export const Messages = () => {
 
   const onConnected = () => {
     setUserData({ ...userData, connected: true });
-    stompClient.subscribe("/chatroom/public", onMessageReceived);
     stompClient.subscribe("/user/" + userData.username + "/private", onPrivateMessage);
     userJoin();
   };
@@ -34,35 +42,19 @@ export const Messages = () => {
     stompClient.send("/app/message", {}, JSON.stringify(chatMessage));
   };
 
-  const onMessageReceived = (payload) => {
-    let payloadData = JSON.parse(payload.body);
-    switch (payloadData.status) {
-      case "JOIN":
-        if (!privateChats.get(payloadData.senderName)) {
-          privateChats.set(payloadData.senderName, []);
-          setPrivateChats(new Map(privateChats));
-        }
-        break;
-      case "MESSAGE":
-        publicChats.push(payloadData);
-        setPublicChats([...publicChats]);
-        break;
-      default:
-        break;
-    }
-  };
-
   const onPrivateMessage = (payload) => {
     console.log(payload);
     let payloadData = JSON.parse(payload.body);
-    if (privateChats.get(payloadData.senderName)) {
+    if (privateChats.has(payloadData.senderName)) {
       privateChats.get(payloadData.senderName).push(payloadData);
       setPrivateChats(new Map(privateChats));
+      console.log("new:", [...privateChats.get(userData.receivername)]);
     } else {
       let list = [];
       list.push(payloadData);
       privateChats.set(payloadData.senderName, list);
       setPrivateChats(new Map(privateChats));
+      console.log("add:", [...privateChats.get(userData.receivername)]);
     }
   };
 
@@ -79,76 +71,104 @@ export const Messages = () => {
     if (stompClient) {
       let chatMessage = {
         senderName: userData.username,
-        receiverName: tab,
+        receiverName: tab || userData.receivername,
         message: userData.message,
         status: "MESSAGE",
       };
 
-      if (userData.username !== tab) {
-        privateChats.get(tab).push(chatMessage);
-        setPrivateChats(new Map(privateChats));
-      }
       stompClient.send("/app/private-message", {}, JSON.stringify(chatMessage));
+
+      // update privateChats state with new message
+      const updatedPrivateChats = new Map(privateChats);
+      if (updatedPrivateChats.get(tab)) {
+        updatedPrivateChats.get(tab).push(chatMessage);
+      } else {
+        updatedPrivateChats.set(tab, [chatMessage]);
+        console.log("new", updatedPrivateChats);
+      }
+      setPrivateChats(updatedPrivateChats);
       setUserData({ ...userData, message: "" });
     }
   };
+  useEffect(() => {
+    console.log("new", privateChats);
+  }, [privateChats]);
 
-  const handleUsername = (event) => {
+  const handlereceivername = (event) => {
     const { value } = event.target;
-    setUserData({ ...userData, username: value });
+    setUserData({ ...userData, receivername: value });
   };
 
   const registerUser = () => {
+    privateChats.set(userData.receivername, []);
     connect();
   };
+
   return (
-    <div className="container">
+    <Container>
       {userData.connected ? (
-        <div className="chat-box">
-          <div className="member-list">
-            <ul>
+        <Box sx={{ display: "flex" }}>
+          <Box sx={{ width: "30%", borderRight: "1px solid grey" }}>
+            <List>
               {[...privateChats.keys()].map((name, index) => (
-                <li
+                <ListItem
+                  button
                   onClick={() => {
                     setTab(name);
                   }}
-                  className={`member ${tab === name && "active"}`}
                   key={index}
                 >
-                  {name}
-                </li>
+                  <ListItemText primary={name} />
+                </ListItem>
               ))}
-            </ul>
-          </div>
-          {tab !== "CHATROOM" && (
-            <div className="chat-content">
-              <ul className="chat-messages">
-                {[...privateChats.get(tab)].map((chat, index) => (
-                  <li className={`message ${chat.senderName === userData.username && "self"}`} key={index}>
-                    {chat.senderName !== userData.username && <div className="avatar">{chat.senderName}</div>}
-                    <div className="message-data">{chat.message}</div>
-                    {chat.senderName === userData.username && <div className="avatar self">{chat.senderName}</div>}
-                  </li>
-                ))}
-              </ul>
+            </List>
+          </Box>
 
-              <div className="send-message">
-                <input type="text" className="input-message" placeholder="enter the message" value={userData.message} onChange={handleMessage} />
-                <button type="button" className="send-button" onClick={sendPrivateValue}>
-                  send
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+          <Box sx={{ width: "70%" }}>
+            <List>
+              {privateChats.get(tab) &&
+                [...privateChats.get(tab)].map((chat, index) => (
+                  <ListItem key={index} alignItems="flex-start">
+                    {chat.senderName !== userData.username && (
+                      <ListItemAvatar>
+                        <Avatar>{chat.senderName.charAt(0)}</Avatar>
+                      </ListItemAvatar>
+                    )}
+                    <ListItemText primary={chat.senderName === userData.username ? "You" : chat.senderName} secondary={chat.message} />
+                  </ListItem>
+                ))}
+            </List>
+
+            <Box sx={{ display: "flex", marginTop: "auto" }}>
+              <TextField
+                label="Enter the message"
+                variant="outlined"
+                size="small"
+                value={userData.message}
+                onChange={handleMessage}
+                sx={{ flexGrow: 1, marginRight: "10px" }}
+              />
+              <Button variant="contained" color="primary" onClick={sendPrivateValue}>
+                Send
+              </Button>
+            </Box>
+          </Box>
+        </Box>
       ) : (
-        <div className="register">
-          <input id="user-name" placeholder="Target User" name="userName" value={userData.username} onChange={handleUsername} margin="normal" />
-          <button type="button" onClick={registerUser}>
-            connect
-          </button>
-        </div>
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <TextField
+            label="Target User"
+            variant="outlined"
+            margin="normal"
+            name="userName"
+            value={userData.receivername}
+            onChange={handlereceivername}
+          />
+          <Button variant="contained" color="primary" onClick={registerUser}>
+            Connect
+          </Button>
+        </Box>
       )}
-    </div>
+    </Container>
   );
 };
