@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { boardActions } from '../redux/modules/board';
 import styles from './Board.module.css';
 
@@ -8,6 +8,7 @@ export const Board = () => {
   const [isUpdate, setIsUpdated] = useState(true);
   const dispatch = useDispatch();
   const params = useParams();
+  const navigate = useNavigate();
   const board = useSelector((state) => state.board).find(
     (item) => item.id === Number(params.id)
   );
@@ -38,7 +39,10 @@ export const Board = () => {
     dispatch(boardActions.update(inputValue));
     setIsUpdated((prev) => !prev);
   };
-
+  const deleteBoard = () => {
+    dispatch(boardActions.delete(Number(params.id)));
+    navigate(`/board/`);
+  };
   return (
     <div>
       <div>
@@ -126,7 +130,10 @@ export const Board = () => {
             />
           </div>
           {isUpdate ? (
-            <button onClick={updateHandler}>수정</button>
+            <>
+              <button onClick={updateHandler}>수정</button>
+              <button onClick={deleteBoard}>삭제</button>
+            </>
           ) : (
             <button onClick={updateBoard}>수정 완료</button>
           )}
