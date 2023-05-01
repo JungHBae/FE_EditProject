@@ -21,7 +21,6 @@ const BoardSlice = createSlice({
       const { id, title, career, genre, salary, deadline, content } =
         action.payload;
       const filterState = state.find((input) => input.id === id);
-      console.log(title);
       if (filterState) {
         filterState.title = title;
         filterState.career = career;
