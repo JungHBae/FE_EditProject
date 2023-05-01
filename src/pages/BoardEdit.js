@@ -3,6 +3,25 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import nextId from 'react-id-generator';
 import { boardActions } from '../redux/modules/board';
+import auth from '../api/auth';
+import {
+  TextField,
+  Button,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Box,
+  Container,
+} from '@mui/material';
+import { motion } from 'framer-motion';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
+import './Input.module.css';
+
+const MotionContainer = motion(Container);
 
 export const BoardEdit = () => {
   const navigate = useNavigate();
@@ -16,9 +35,9 @@ export const BoardEdit = () => {
     career: '',
     deadline: '',
   });
-  const [money, setMoney] = useState(0);
+  const [money, setMoney] = useState('');
   const moneyHandle = (e) => {
-    setMoney((prev) => e.target.value);
+    setMoney(e.target.value);
   };
 
   const { title, content, genre, salary, career, deadline } = inputValue;
@@ -30,14 +49,27 @@ export const BoardEdit = () => {
       [name]: value,
     });
   };
-  const onSubmit = (e) => {
+
+  const changeDate = (e) => {
+    setInputValue({
+      ...inputValue,
+      deadline: e,
+    });
+  };
+  const board = useSelector((state) => state.board);
+
+  const onSubmit = async (e) => {
     e.preventDefault();
     const id = Number(nextId().slice(2));
     inputValue.id = id;
     inputValue.salary = `${inputValue.salary} ${money}`;
     setInputValue(inputValue);
+    // const response = await auth.post('/board', {
+    //   ...inputValue,
+    // });
     dispatch(boardActions.add(inputValue));
-    navigate(`/board/`);
+
+    navigate(`/board`);
     setInputValue({
       title: '',
       content: '',
@@ -47,72 +79,181 @@ export const BoardEdit = () => {
       deadline: '',
     });
   };
-
+  console.log(board);
   return (
-    <form onSubmit={onSubmit}>
-      <div>
-        <div>
-          <label htmlFor="genre">카테고리</label>
-          <select id="genre" name="genre" value={genre} onChange={change}>
-            <option defaultValue>choice</option>
-            <option value="genre1">genre1</option>
-            <option value="genre2">genre2</option>
-            <option value="genre3">genre3</option>
-          </select>
-        </div>
-        <div>
-          <input
-            type="date"
-            name="deadline"
-            value={deadline}
-            onChange={change}
-          />
-        </div>
-        <div>
-          <input type="text" name="title" value={title} onChange={change} />
-        </div>
-        <div style={{ width: '70%', float: 'left' }}>
-          <div>
-            <p>스펙</p>
-            <label htmlFor="career">경력</label>
-            <select id="career" name="career" onChange={change} value={career}>
-              <option defaultValue>choice</option>
-              <option value="1">1~3 year</option>
-              <option value="4">4~6 year</option>
-              <option value="10">10~15 year</option>
-              <option value="16">16~20 year</option>
-              <option value="21">21 year up</option>
-            </select>
-            <p>근무조건</p>
+    <MotionContainer
+      initial={{ y: -50, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      exit={{ y: -50, opacity: 0 }}
+      transition={{ duration: 0.2 }}
+    >
+      <Box
+        sx={{
+          marginTop: '3rem',
+          display: 'flex',
+          flexDirection: 'row',
+          gap: '5px',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '1200px',
+        }}
+      >
+        <Box
+          sx={{
+            marginTop: '3rem',
+            width: '70%',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '5px',
+            alignItems: 'center',
+          }}
+        >
+          <form onSubmit={onSubmit}>
             <div>
-              <label htmlFor="salary">급여</label>
-              <select
-                id="salary"
-                name="salary"
-                value={salary}
-                onChange={change}
-              >
-                <option defaultValue>choice</option>
-                <option value="month">월급</option>
-                <option value="si">시급</option>
-                <option value="gun">건당</option>
-              </select>
-              <input
-                type="number"
-                name="money"
-                value={money}
-                onChange={moneyHandle}
-              />
-            </div>
+              <FormControl sx={{ width: '600px' }} size="small">
+                <InputLabel id="demo-simple-select-label">Genre</InputLabel>
+                <Select
+                  labelId="demo-simple-select-label"
+                  id="demo-simple-select"
+                  value={genre}
+                  name="genre"
+                  label="Genre"
+                  onChange={change}
+                >
+                  <MenuItem value="genre1">genre1</MenuItem>
+                  <MenuItem value="genre2">genre2</MenuItem>
+                  <MenuItem value="genre3">genre3</MenuItem>
+                </Select>
+              </FormControl>
 
-            <div>
-              <p>상세내용</p>
-              <textarea name="content" value={content} onChange={change} />
+              <div>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DemoContainer components={['DatePicker']}>
+                    <DatePicker
+                      label="deadline"
+                      value={deadline}
+                      onChange={changeDate}
+                    />
+                  </DemoContainer>
+                </LocalizationProvider>
+              </div>
+              <div style={{ marginTop: '15px' }}>
+                <TextField
+                  label="Title"
+                  variant="outlined"
+                  name="title"
+                  value={title}
+                  autoComplete="off"
+                  type="text"
+                  size="small"
+                  fullWidth
+                  onChange={change}
+                />
+              </div>
+              <div style={{ width: '70%', float: 'left' }}>
+                <div>
+                  <FormControl
+                    sx={{ width: '600px', marginTop: '15px' }}
+                    size="small"
+                  >
+                    <InputLabel id="demo-simple-select-label">
+                      Career
+                    </InputLabel>
+                    <Select
+                      labelId="demo-simple-select-label"
+                      id="demo-simple-select"
+                      value={career}
+                      name="career"
+                      label="career"
+                      onChange={change}
+                    >
+                      <MenuItem value="1">1~3 years</MenuItem>
+                      <MenuItem value="4">4~6 years</MenuItem>
+                      <MenuItem value="10">10~15 years</MenuItem>
+                      <MenuItem value="16">16~20 years</MenuItem>
+                      <MenuItem value="21">21 years up</MenuItem>
+                    </Select>
+                  </FormControl>
+
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      width: '600px',
+                      gap: '20px',
+                      marginTop: '15px',
+                    }}
+                  >
+                    <FormControl sx={{ width: '290px' }} size="small">
+                      <InputLabel id="demo-simple-select-label">
+                        Salary
+                      </InputLabel>
+                      <Select
+                        labelId="demo-simple-select-label"
+                        id="demo-simple-select"
+                        value={salary}
+                        name="salary"
+                        label="salary"
+                        onChange={change}
+                      >
+                        <MenuItem value="month">월급</MenuItem>
+                        <MenuItem value="si">시급</MenuItem>
+                        <MenuItem value="gun">건당</MenuItem>
+                      </Select>
+                    </FormControl>
+
+                    <FormControl sx={{ width: '290px' }} size="small">
+                      <TextField
+                        label="money"
+                        variant="outlined"
+                        name="money"
+                        autoComplete="off"
+                        // margin="normal"
+                        type="number"
+                        size="small"
+                        value={money}
+                        onChange={moneyHandle}
+                      />
+                    </FormControl>
+                  </Box>
+
+                  <div>
+                    <FormControl sx={{ width: '600px' }} size="small">
+                      <TextField
+                        id="outlined-multiline-static"
+                        label="contents"
+                        multiline
+                        rows={8}
+                        name="content"
+                        value={content}
+                        onChange={change}
+                        margin="normal"
+                      />
+                    </FormControl>
+                  </div>
+                  <FormControl sx={{ width: '600px' }} size="small">
+                    <Button
+                      variant="contained"
+                      fullWidth
+                      sx={{ mt: '20px' }}
+                      type="submit"
+                    >
+                      완료
+                    </Button>
+                  </FormControl>
+                </div>
+              </div>
             </div>
-            <button type="submit">완료</button>
-          </div>
-        </div>
-        <div style={{ float: 'right', width: '30%' }}>
+          </form>
+        </Box>
+
+        <Box
+          sx={{
+            width: '30%',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '10px',
+          }}
+        >
           <p>유튜버/편집자 정보</p>
           <img
             src="https://cdn.pixabay.com/photo/2021/02/12/07/03/icon-6007530_960_720.png"
@@ -127,8 +268,8 @@ export const BoardEdit = () => {
             <span>링크</span>
             <a href="#">Link</a>
           </div>
-        </div>
-      </div>
-    </form>
+        </Box>
+      </Box>
+    </MotionContainer>
   );
 };
