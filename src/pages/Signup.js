@@ -24,8 +24,8 @@ export const Signup = () => {
   const signupUser = async (user) => {
     try {
       const response = await axios.post(SIGNUP_URL, user);
-      console.log(response.data);
-      // navigate("/login");
+      // console.log(response.data);
+      navigate("/login");
     } catch (error) {
       alert(`400:${error.response.data.message}`);
     }
@@ -51,7 +51,7 @@ export const Signup = () => {
     }
     signupUser(user);
   };
-  console.log(user);
+  // console.log(user);
   return (
     <MotionContainer initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -50, opacity: 0 }} transition={{ duration: 0.2 }}>
       <Box maxWidth="xs" sx={{ marginTop: "5rem", display: "flex", flexDirection: "column", alignItems: "center" }}>

@@ -1,25 +1,25 @@
-import { Link, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
-import { authUser } from "../redux/modules/auth";
-import Cookies from "js-cookie";
-import axios from "../api/axios";
-import jwtDecode from "jwt-decode";
-import { Box, Button, Container, TextField, Typography } from "@mui/material";
-import { motion } from "framer-motion";
+import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { authUser } from '../redux/modules/auth';
+import Cookies from 'js-cookie';
+import axios from '../api/axios';
+import jwtDecode from 'jwt-decode';
+import { Box, Button, Container, TextField, Typography } from '@mui/material';
+import { motion } from 'framer-motion';
 
-const LOGIN_URL = "/member/login";
+const LOGIN_URL = '/member/login';
 const MotionContainer = motion(Container);
 export const Login = () => {
-  const [user, setUser] = useState({ userId: "", password: "" });
+  const [user, setUser] = useState({ userId: '', password: '' });
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   // if already logged in, redirect to home page
   useEffect(() => {
-    const token = Cookies.get("token");
+    const token = Cookies.get('token');
     if (token) {
-      navigate("/");
+      navigate('/');
     }
   }, [navigate]);
 
@@ -28,16 +28,14 @@ export const Login = () => {
   const loginUser = async (user) => {
     try {
       const response = await axios.post(LOGIN_URL, user);
-      const accessHeader = response.headers.get("access_header");
-      const token = accessHeader.split(" ")[1];
-      console.log(token);
-
+      const accessHeader = response.headers.get('access_header');
+      const token = accessHeader.split(' ')[1];
       const userToken = jwtDecode(token);
       const expirationTime = new Date(userToken.exp * 1000);
       // expirationTime.setTime(expirationTime.getTime() + 3 * 1000); // 10 minutes
-      Cookies.set("token", token, { expires: expirationTime });
-      console.log(userToken);
-      dispatch(authUser(["true", userToken.id]));
+      Cookies.set('token', token, { expires: expirationTime });
+
+      dispatch(authUser(['true', userToken.sub])); //.sub에 userName? 토큰제목?
       navigate(-1);
     } catch (error) {
       alert(`400: ${error.response.data.message}`);
@@ -50,10 +48,10 @@ export const Login = () => {
     const changedValue = e.target.value;
     const targetInput = e.target.name;
     switch (targetInput) {
-      case "userId":
+      case 'userId':
         setUser({ ...user, userId: changedValue });
         break;
-      case "password":
+      case 'password':
         setUser({ ...user, password: changedValue });
         break;
       default:
@@ -63,20 +61,33 @@ export const Login = () => {
   const handleLoginSubmit = (e) => {
     e.preventDefault();
     const { userId, password } = user;
-    if (typeof userId !== "string" || !userId.trim()) {
-      alert("Please enter a valid ID");
+    if (typeof userId !== 'string' || !userId.trim()) {
+      alert('Please enter a valid ID');
       return;
     }
-    if (typeof password !== "string" || !password.trim()) {
-      alert("Please enter a valid password");
+    if (typeof password !== 'string' || !password.trim()) {
+      alert('Please enter a valid password');
       return;
     }
     loginUser(user);
   };
 
   return (
-    <MotionContainer initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -50, opacity: 0 }} transition={{ duration: 0.2 }}>
-      <Box maxWidth="xs" sx={{ marginTop: "5rem", display: "flex", flexDirection: "column", alignItems: "center" }}>
+    <MotionContainer
+      initial={{ y: -50, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      exit={{ y: -50, opacity: 0 }}
+      transition={{ duration: 0.2 }}
+    >
+      <Box
+        maxWidth="xs"
+        sx={{
+          marginTop: '5rem',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}
+      >
         <Typography variant="h4">Login</Typography>
         <Box component="form" onSubmit={handleLoginSubmit} sx={{ mt: 3 }}>
           <TextField
@@ -101,7 +112,12 @@ export const Login = () => {
             margin="normal"
             type="password"
           />
-          <Button variant="contained" fullWidth sx={{ mt: "20px" }} type="submit">
+          <Button
+            variant="contained"
+            fullWidth
+            sx={{ mt: '20px' }}
+            type="submit"
+          >
             Signup
           </Button>
         </Box>
