@@ -2,17 +2,25 @@ import React, { useEffect, useState } from "react";
 import { over } from "stompjs";
 import SockJS from "sockjs-client";
 import { useSelector } from "react-redux";
-import { Box, ListItemAvatar, Container, Typography, List, ListItem, ListItemText, TextField, Button, Avatar } from "@mui/material";
+import { Container, Grid, List, ListItem, ListItemText, Box, TextField, Button } from "@mui/material";
+import Cookies from "js-cookie";
+import axios from "../api/axios";
 
 let stompClient = null;
 export const Messages = () => {
   const authUserName = useSelector((state) => state.auth.userName);
   const [privateChats, setPrivateChats] = useState(new Map());
-  const [tab, setTab] = useState("CHATROOM");
+  const [tab, setTab] = useState("");
   const [userData, setUserData] = useState({ username: "", receivername: "", connected: false, message: "" });
+
   useEffect(() => {
     setUserData((prevState) => ({ ...prevState, username: authUserName }));
+    // setTab(authUserName);
   }, [authUserName]);
+
+  useEffect(() => {
+    console.log("new", privateChats);
+  }, [privateChats]);
 
   useEffect(() => {
     console.log(userData);
@@ -22,44 +30,81 @@ export const Messages = () => {
     console.log("message");
   }, [privateChats]);
 
-  const connect = () => {
-    let Sock = new SockJS("http://localhost:8080/ws");
-    stompClient = over(Sock);
-    stompClient.connect({}, onConnected, onError);
-  };
+  useEffect(() => {
+    console.log(tab, "tab");
+  }, [tab]);
 
-  const onConnected = () => {
-    setUserData({ ...userData, connected: true });
-    stompClient.subscribe("/user/" + userData.username + "/private", onPrivateMessage);
-    userJoin();
-  };
-
-  const userJoin = () => {
-    let chatMessage = {
-      senderName: userData.username,
-      status: "JOIN",
-    };
-    stompClient.send("/app/message", {}, JSON.stringify(chatMessage));
-  };
-
-  const onPrivateMessage = (payload) => {
-    console.log(payload);
-    let payloadData = JSON.parse(payload.body);
-    if (privateChats.has(payloadData.senderName)) {
-      privateChats.get(payloadData.senderName).push(payloadData);
-      setPrivateChats(new Map(privateChats));
-      console.log("new:", [...privateChats.get(userData.receivername)]);
-    } else {
-      let list = [];
-      list.push(payloadData);
-      privateChats.set(payloadData.senderName, list);
-      setPrivateChats(new Map(privateChats));
-      console.log("add:", [...privateChats.get(userData.receivername)]);
+  const getRoomNumber = async () => {
+    const token = Cookies.get("token");
+    try {
+      const response = await axios.post(
+        "http://localhost:4000/chat",
+        {
+          nickname: userData.receivername,
+        },
+        {
+          headers: {
+            ACCESS_HEADER: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data.data;
+    } catch (e) {
+      alert(e, "ERROR");
     }
   };
 
+  const connect = async () => {
+    const token = Cookies.get("token");
+    const room = await getRoomNumber();
+    console.log("roomId:", room.roomId);
+    console.log("roomName:", room.roomName);
+    setTab(room.roomName);
+    let Sock = new SockJS("http://localhost:4000/ws-edit");
+    stompClient = over(Sock);
+
+    stompClient.connect({ ACCESS_HEADER: `Bearer ${token}` }, () => onConnected(room), onError);
+  };
+
   const onError = (err) => {
-    console.log(err);
+    console.log(err, "에러!");
+  };
+
+  const onConnected = async (room) => {
+    setUserData({ ...userData, connected: true });
+    await stompClient.subscribe("/sub/chat/room" + room.roomId, onPrivateMessage);
+
+    userJoin(room);
+    privateChats.set(room.roomId, { targetName: userData.receivername, messages: [] });
+  };
+
+  const userJoin = (room) => {
+    let chatMessage = {
+      type: "ENTER",
+      sender: userData.username,
+      roomId: room.roomId,
+      roomName: room.roomName,
+      message: "",
+    };
+
+    stompClient.send("/pub/chat/enter", {}, JSON.stringify(chatMessage));
+  };
+
+  const onPrivateMessage = (payload) => {
+    let payloadData = JSON.parse(payload.body);
+    console.log("PAYLOAD DATA", payloadData);
+
+    if (privateChats.has(payloadData.roomId)) {
+      privateChats.get(payloadData.roomId).messages.push(payloadData);
+      setPrivateChats(new Map(privateChats));
+      console.log("new:", privateChats.get(payloadData.roomId));
+    } else {
+      let list = [];
+      list.push(payloadData);
+      privateChats.set(payloadData.roomId, { targetName: userData.receivername, messages: list });
+      setPrivateChats(new Map(privateChats));
+      console.log("add:", privateChats.get(payloadData.roomId));
+    }
   };
 
   const handleMessage = (event) => {
@@ -67,32 +112,51 @@ export const Messages = () => {
     setUserData({ ...userData, message: value });
   };
 
-  const sendPrivateValue = () => {
+  const getPrivateRoom = async () => {
+    const token = Cookies.get("token");
+    try {
+      const response = await axios.post(
+        "http://localhost:4000/chat/find",
+        { nickname: userData.receivername },
+        {
+          headers: {
+            ACCESS_HEADER: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log(response.data.data, "findChatRoom");
+      return response.data.data;
+    } catch (err) {
+      alert(err);
+    }
+  };
+
+  const sendPrivateValue = async () => {
     if (stompClient) {
+      const room = await getPrivateRoom();
+
       let chatMessage = {
-        senderName: userData.username,
-        receiverName: tab || userData.receivername,
+        type: "TALK",
+        sender: userData.username,
+        roomId: room.roomId,
+        roomName: room.roomName,
         message: userData.message,
-        status: "MESSAGE",
       };
 
-      stompClient.send("/app/private-message", {}, JSON.stringify(chatMessage));
+      await stompClient.send("/pub/chat/send", {}, JSON.stringify(chatMessage));
+      console.log("room", chatMessage);
 
-      // update privateChats state with new message
-      const updatedPrivateChats = new Map(privateChats);
-      if (updatedPrivateChats.get(tab)) {
-        updatedPrivateChats.get(tab).push(chatMessage);
-      } else {
-        updatedPrivateChats.set(tab, [chatMessage]);
-        console.log("new", updatedPrivateChats);
-      }
-      setPrivateChats(updatedPrivateChats);
+      // const updatedPrivateChats = new Map(privateChats);
+      // if (updatedPrivateChats.get(roomNumber)) {
+      //   updatedPrivateChats.get(roomNumber).messages.push(chatMessage);
+      // } else {
+      //   updatedPrivateChats.set(roomNumber, { targetName: userData.receivername, messages: [chatMessage] });
+      //   console.log("new", updatedPrivateChats);
+      // }
+      // setPrivateChats(updatedPrivateChats);
       setUserData({ ...userData, message: "" });
     }
   };
-  useEffect(() => {
-    console.log("new", privateChats);
-  }, [privateChats]);
 
   const handlereceivername = (event) => {
     const { value } = event.target;
@@ -100,43 +164,42 @@ export const Messages = () => {
   };
 
   const registerUser = () => {
-    privateChats.set(userData.receivername, []);
     connect();
   };
 
   return (
     <Container>
       {userData.connected ? (
-        <Box sx={{ display: "flex" }}>
-          <Box sx={{ width: "30%", borderRight: "1px solid grey" }}>
+        <Grid container spacing={0}>
+          <Grid item xs={3} sx={{ borderRight: "1px solid grey" }}>
             <List>
-              {[...privateChats.keys()].map((name, index) => (
+              {Array.from(privateChats.values()).map((chat, index) => (
                 <ListItem
                   button
                   onClick={() => {
-                    setTab(name);
+                    setTab(chat.targetName);
                   }}
                   key={index}
                 >
-                  <ListItemText primary={name} />
+                  <ListItemText primary={chat.targetName} />
                 </ListItem>
               ))}
             </List>
-          </Box>
+          </Grid>
 
-          <Box sx={{ width: "70%" }}>
+          <Grid item xs={9}>
             <List>
-              {privateChats.get(tab) &&
-                [...privateChats.get(tab)].map((chat, index) => (
-                  <ListItem key={index} alignItems="flex-start">
-                    {chat.senderName !== userData.username && (
-                      <ListItemAvatar>
-                        <Avatar>{chat.senderName.charAt(0)}</Avatar>
-                      </ListItemAvatar>
-                    )}
-                    <ListItemText primary={chat.senderName === userData.username ? "You" : chat.senderName} secondary={chat.message} />
+              {Array.from(privateChats.values()).map((chats, i) =>
+                chats.messages.map((chat, index) => (
+                  <ListItem key={index} alignItems="flex-end">
+                    <ListItemText
+                      primary={chat.sender === userData.username ? "You" : chat.sender}
+                      secondary={chat.message}
+                      sx={{ textAlign: chat.sender === userData.username ? "right" : "left" }}
+                    />
                   </ListItem>
-                ))}
+                ))
+              )}
             </List>
 
             <Box sx={{ display: "flex", marginTop: "auto" }}>
@@ -152,8 +215,8 @@ export const Messages = () => {
                 Send
               </Button>
             </Box>
-          </Box>
-        </Box>
+          </Grid>
+        </Grid>
       ) : (
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
           <TextField

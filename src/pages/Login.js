@@ -7,6 +7,9 @@ import axios from "../api/axios";
 import jwtDecode from "jwt-decode";
 import { Box, Button, Container, TextField, Typography } from "@mui/material";
 import { motion } from "framer-motion";
+// import SockJS from "sockjs-client";
+// import { over } from "stompjs";
+// let stompClient = null;
 
 const LOGIN_URL = "/member/login";
 const MotionContainer = motion(Container);
@@ -29,13 +32,18 @@ export const Login = () => {
     try {
       const response = await axios.post(LOGIN_URL, user);
       const accessHeader = response.headers.get("access_header");
+      console.log(accessHeader);
       const token = accessHeader.split(" ")[1];
       const userToken = jwtDecode(token);
+      const data = response.data;
+      console.log(data, "짱짱맨");
       const expirationTime = new Date(userToken.exp * 1000);
       // expirationTime.setTime(expirationTime.getTime() + 3 * 1000); // 10 minutes
       Cookies.set("token", token, { expires: expirationTime });
-
-      dispatch(authUser(["true", userToken.sub]));
+      dispatch(authUser(["true", data.data.nickname]));
+      // let Sock = new SockJS("http://localhost:4000/ws-edit");
+      // stompClient = over(Sock);
+      // stompClient.connect();
       navigate(-1);
     } catch (error) {
       alert(`400: ${error.response.data.message}`);

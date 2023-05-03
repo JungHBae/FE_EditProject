@@ -1,12 +1,12 @@
 import { Pets } from "@mui/icons-material";
-import { Chip, AppBar, Box, Button, Toolbar, Typography, styled } from "@mui/material";
+import { Chip, AppBar, Box, Button, Toolbar } from "@mui/material";
 import Cookies from "js-cookie";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { authUser } from "../redux/modules/auth";
 import { useEffect } from "react";
 import jwtDecode from "jwt-decode";
-import { motion } from "framer-motion";
+// import { motion } from "framer-motion";
 
 export const Header = () => {
   const location = useLocation();
@@ -19,7 +19,7 @@ export const Header = () => {
       const userToken = jwtDecode(token);
       dispatch(authUser(["true", userToken.sub]));
     }
-  }, []);
+  }, [dispatch]);
 
   const isAuth = useSelector((state) => state.auth.authorizedUser);
   const userName = useSelector((state) => state.auth.userName);

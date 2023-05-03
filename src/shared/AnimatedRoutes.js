@@ -14,7 +14,8 @@ import { AnimatePresence } from "framer-motion";
 import { authUser } from "../redux/modules/auth";
 import Cookies from "js-cookie";
 import { useDispatch, useSelector } from "react-redux";
-import jwtDecode from "jwt-decode";
+// import jwtDecode from "jwt-decode";
+// import axios from "axios";
 
 export const AnimatedRoutes = () => {
   const location = useLocation();
@@ -23,9 +24,27 @@ export const AnimatedRoutes = () => {
   const isAuth = useSelector((state) => state.auth.authorizedUser);
   const dispatch = useDispatch();
 
+  // const authUsers = async (token) => {
+  //   try {
+  //     await axios.get(`http://localhost:4000/token`, {
+  //       headers: {
+  //         ACCESS_HEADER: `Bearer ${token}`,
+  //       },
+  //     });
+
+  //   } catch (e) {
+  //     if (e.response.status === 401) {
+  //       Cookies.remove("token");
+  //       alert(e);
+  //       // navigate("/");
+  //     }
+  //   }
+  // };
+
   // authenticate user on every route transition
   useEffect(() => {
     const token = Cookies.get("token");
+    // if (token) authUsers(token);
     //check if cookie has expired. only alert if was logged in previously(redux state true -> false)
     if (isAuth && !token) {
       dispatch(authUser(["false", ""]));
