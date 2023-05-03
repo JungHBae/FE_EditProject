@@ -23,7 +23,7 @@ export const Signup = () => {
   //POST request to signup user
   const signupUser = async (user) => {
     try {
-      const response = await axios.post(SIGNUP_URL, user);
+      await axios.post(SIGNUP_URL, user);
       // console.log(response.data);
       navigate("/login");
     } catch (error) {
