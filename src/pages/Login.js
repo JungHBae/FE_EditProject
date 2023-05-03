@@ -11,18 +11,19 @@ import { motion } from "framer-motion";
 // import { over } from "stompjs";
 // let stompClient = null;
 
-const LOGIN_URL = "/member/login";
+
+const LOGIN_URL = '/member/login';
 const MotionContainer = motion(Container);
 export const Login = () => {
-  const [user, setUser] = useState({ userId: "", password: "" });
+  const [user, setUser] = useState({ userId: '', password: '' });
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   // if already logged in, redirect to home page
   useEffect(() => {
-    const token = Cookies.get("token");
+    const token = Cookies.get('token');
     if (token) {
-      navigate("/");
+      navigate('/');
     }
   }, [navigate]);
 
@@ -31,6 +32,7 @@ export const Login = () => {
   const loginUser = async (user) => {
     try {
       const response = await axios.post(LOGIN_URL, user);
+
       const accessHeader = response.headers.get("access_header");
       console.log(accessHeader);
       const token = accessHeader.split(" ")[1];
@@ -56,10 +58,10 @@ export const Login = () => {
     const changedValue = e.target.value;
     const targetInput = e.target.name;
     switch (targetInput) {
-      case "userId":
+      case 'userId':
         setUser({ ...user, userId: changedValue });
         break;
-      case "password":
+      case 'password':
         setUser({ ...user, password: changedValue });
         break;
       default:
@@ -69,20 +71,33 @@ export const Login = () => {
   const handleLoginSubmit = (e) => {
     e.preventDefault();
     const { userId, password } = user;
-    if (typeof userId !== "string" || !userId.trim()) {
-      alert("Please enter a valid ID");
+    if (typeof userId !== 'string' || !userId.trim()) {
+      alert('Please enter a valid ID');
       return;
     }
-    if (typeof password !== "string" || !password.trim()) {
-      alert("Please enter a valid password");
+    if (typeof password !== 'string' || !password.trim()) {
+      alert('Please enter a valid password');
       return;
     }
     loginUser(user);
   };
 
   return (
-    <MotionContainer initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -50, opacity: 0 }} transition={{ duration: 0.2 }}>
-      <Box maxWidth="xs" sx={{ marginTop: "5rem", display: "flex", flexDirection: "column", alignItems: "center" }}>
+    <MotionContainer
+      initial={{ y: -50, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      exit={{ y: -50, opacity: 0 }}
+      transition={{ duration: 0.2 }}
+    >
+      <Box
+        maxWidth="xs"
+        sx={{
+          marginTop: '5rem',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}
+      >
         <Typography variant="h4">Login</Typography>
         <Box component="form" onSubmit={handleLoginSubmit} sx={{ mt: 3 }}>
           <TextField
@@ -107,7 +122,12 @@ export const Login = () => {
             margin="normal"
             type="password"
           />
-          <Button variant="contained" fullWidth sx={{ mt: "20px" }} type="submit">
+          <Button
+            variant="contained"
+            fullWidth
+            sx={{ mt: '20px' }}
+            type="submit"
+          >
             Signup
           </Button>
         </Box>
